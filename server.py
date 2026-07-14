@@ -157,6 +157,28 @@ def run_build():
         return f'构建失败: {e}'
 
 
+def git_push():
+    """自动提交并推送到 GitHub"""
+    try:
+        # 添加所有变更
+        r1 = subprocess.run(['git', 'add', '-A'], capture_output=True, text=True, cwd=BASE, timeout=10)
+        # 提交（如果没有变更就不提交）
+        r2 = subprocess.run(['git', 'diff', '--cached', '--quiet'], capture_output=True, cwd=BASE, timeout=10)
+        if r2.returncode == 0:
+            return '没有新变更，跳过推送'
+        r3 = subprocess.run(['git', 'commit', '-m', 'auto: 更新内容'], capture_output=True, text=True, cwd=BASE, timeout=10)
+        # 推送到 GitHub
+        r4 = subprocess.run(['git', 'push'], capture_output=True, text=True, cwd=BASE, timeout=60)
+        if r4.returncode == 0:
+            return '✅ 已推送到 GitHub'
+        else:
+            return f'⚠ 推送失败: {r4.stderr.strip()[:200]}'
+    except subprocess.TimeoutExpired:
+        return '⏱ 推送超时'
+    except Exception as e:
+        return f'⚠ 推送出错: {e}'
+
+
 def handle_upload(data):
     """处理图片上传（base64 → 文件）"""
     filename = data.get('filename', 'photo.jpg')
@@ -276,7 +298,8 @@ class AdminHandler(http.server.SimpleHTTPRequestHandler):
 
         elif parsed.path == '/api/build':
             output = run_build()
-            self._send_json({'success': True, 'output': output})
+            push_result = git_push()
+            self._send_json({'success': True, 'output': output, 'push': push_result})
 
         elif parsed.path == '/api/upload':
             result = handle_upload(data)
