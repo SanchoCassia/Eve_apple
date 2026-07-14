@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理 · 小梅的记录</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 15px; }
+  body {
+    font-family: -apple-system, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    background: #f5f2ee; color: #2c2c2c; display: flex; min-height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 200px; background: #2c2c2c; color: #ddd; padding: 1.5rem 0;
+    display: flex; flex-direction: column; flex-shrink: 0;
+  }
+  .sidebar h2 {
+    font-size: 1rem; font-weight: 600; padding: 0 1.2rem 1rem;
+    letter-spacing: 2px; color: #fff; border-bottom: 1px solid #444;
+  }
+  .sidebar nav { flex: 1; padding: 0.5rem 0; }
+  .sidebar a {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.7rem 1.2rem; color: #bbb; text-decoration: none;
+    transition: background 0.15s; font-size: 0.9rem; cursor: pointer;
+  }
+  .sidebar a:hover, .sidebar a.active { background: #3a3a3a; color: #fff; }
+  .sidebar a .count { margin-left: auto; font-size: 0.75rem; color: #666; }
+  .sidebar .bottom { padding: 1rem 1.2rem; border-top: 1px solid #444; }
+  .sidebar .home-link { color: #888; font-size: 0.8rem; text-decoration: none; }
+  .sidebar .home-link:hover { color: #ddd; }
+
+  /* ── Main ── */
+  .main { flex: 1; padding: 2rem; max-width: 900px; }
+
+  /* ── Header bar ── */
+  .header-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  .header-bar h1 { font-size: 1.3rem; font-weight: 600; }
+  .header-bar h1 .emoji { margin-right: 0.3rem; }
+  .header-actions { display: flex; gap: 0.5rem; }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.5rem 1rem; border: none; border-radius: 6px;
+    font-size: 0.85rem; cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+  }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary { background: #b85a3a; color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: #a04e32; }
+  .btn-secondary { background: #e8e3dc; color: #555; }
+  .btn-secondary:hover:not(:disabled) { background: #dcd5cb; }
+  .btn-danger { background: #d9534f; color: #fff; }
+  .btn-danger:hover:not(:disabled) { background: #c9302c; }
+  .btn-sm { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+  .btn-success { background: #5cb85c; color: #fff; }
+  .btn-success:hover:not(:disabled) { background: #4cae4c; }
+
+  /* ── Entry list ── */
+  .entry-list { display: flex; flex-direction: column; gap: 0.5rem; }
+  .entry-item {
+    background: #fff; border-radius: 6px; padding: 0.8rem 1rem;
+    display: flex; align-items: center; gap: 1rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    cursor: pointer; transition: box-shadow 0.15s;
+  }
+  .entry-item:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+  .entry-item .info { flex: 1; min-width: 0; }
+  .entry-item .info .title { font-weight: 600; font-size: 0.9rem; }
+  .entry-item .info .meta { font-size: 0.78rem; color: #999; margin-top: 0.15rem; }
+  .entry-item .stars { color: #d4a017; font-size: 0.8rem; }
+  .entry-item.active { border-left: 3px solid #b85a3a; }
+  .entry-empty {
+    text-align: center; padding: 3rem; color: #aaa;
+    font-size: 0.9rem;
+  }
+
+  /* ── Form ── */
+  .form-card {
+    background: #fff; border-radius: 8px; padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-top: 1.5rem;
+  }
+  .form-card h3 { font-size: 1rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #eee; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem 1rem; }
+  .form-grid .full-width { grid-column: 1 / -1; }
+  .form-group { display: flex; flex-direction: column; gap: 0.25rem; }
+  .form-group label { font-size: 0.8rem; color: #888; font-weight: 500; }
+  .form-group input, .form-group select, .form-group textarea {
+    padding: 0.5rem 0.7rem; border: 1px solid #ddd; border-radius: 4px;
+    font-size: 0.85rem; font-family: inherit; outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: #b85a3a;
+  }
+  .form-group textarea { resize: vertical; min-height: 200px; font-size: 0.85rem; line-height: 1.7; }
+  .form-actions { display: flex; gap: 0.5rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee; }
+  .spacer { flex: 1; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    background: #2c2c2c; color: #fff; padding: 0.7rem 1.5rem;
+    border-radius: 8px; font-size: 0.85rem; opacity: 0;
+    transition: opacity 0.3s; pointer-events: none; z-index: 999;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ── Responsive ── */
+  @media (max-width: 700px) {
+    .sidebar { width: 60px; }
+    .sidebar h2, .sidebar a span, .sidebar a .count, .sidebar .bottom { display: none; }
+    .sidebar a { justify-content: center; padding: 0.7rem; }
+    .sidebar h2 { padding: 1rem 0; text-align: center; }
+    .main { padding: 1rem; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <h2>📝 管理</h2>
+  <nav>
+    <a class="active" data-cat="books" onclick="switchCat('books')"><span>📖</span><span>书</span><span class="count" id="count-books">0</span></a>
+    <a data-cat="films" onclick="switchCat('films')"><span>🎬</span><span>电影</span><span class="count" id="count-films">0</span></a>
+    <a data-cat="tv" onclick="switchCat('tv')"><span>📺</span><span>电视</span><span class="count" id="count-tv">0</span></a>
+    <a data-cat="photos" onclick="switchCat('photos')"><span>📷</span><span>照片</span><span class="count" id="count-photos">0</span></a>
+  </nav>
+  <div class="bottom">
+    <a class="home-link" href="/">← 返回网站</a>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="header-bar">
+    <h1><span class="emoji" id="cat-emoji">📖</span><span id="cat-title">书</span></h1>
+    <div class="header-actions">
+      <button class="btn btn-success" onclick="buildSite()">🔄 构建网站</button>
+      <button class="btn btn-primary" onclick="newEntry()">＋ 新增</button>
+    </div>
+  </div>
+
+  <!-- Entry list -->
+  <div class="entry-list" id="entryList">
+    <div class="entry-empty">加载中…</div>
+  </div>
+
+  <!-- Edit form -->
+  <div class="form-card" id="formCard" style="display:none">
+    <h3 id="formTitle">编辑</h3>
+    <div class="form-grid" id="formFields">
+      <div class="form-group">
+        <label>标题 *</label>
+        <input id="f-title" placeholder="标题">
+      </div>
+      <div class="form-group" id="fg-author">
+        <label>作者</label>
+        <input id="f-author" placeholder="作者">
+      </div>
+      <div class="form-group" id="fg-status" style="display:none">
+        <label>状态</label>
+        <select id="f-status">
+          <option value="read">看过的</option>
+          <option value="want">想看的</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>日期</label>
+        <input id="f-date" placeholder="2026-07">
+      </div>
+      <div class="form-group" id="fg-rating">
+        <label>评分</label>
+        <select id="f-rating">
+          <option value="0">无</option>
+          <option value="1">★☆☆☆☆</option>
+          <option value="2">★★☆☆☆</option>
+          <option value="3">★★★☆☆</option>
+          <option value="4">★★★★☆</option>
+          <option value="5">★★★★★</option>
+        </select>
+      </div>
+      <div class="form-group" id="fg-tags">
+        <label>标签（逗号分隔）</label>
+        <input id="f-tags" placeholder="小说, 魔幻现实主义">
+      </div>
+      <div class="form-group" id="fg-file" style="display:none">
+        <label>照片</label>
+        <input type="file" id="f-file-input" accept="image/*" onchange="previewPhoto(event)">
+        <input type="hidden" id="f-file" value="">
+        <div id="f-file-preview" style="margin-top:0.5rem;max-width:200px;border-radius:4px;overflow:hidden;display:none">
+          <img style="width:100%;height:auto;display:block">
+        </div>
+      </div>
+      <div class="form-group full-width">
+        <label>正文</label>
+        <textarea id="f-body" placeholder="写点什么…"></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-danger btn-sm" id="btn-delete" onclick="deleteEntry()">🗑 删除</button>
+      <div class="spacer"></div>
+      <button class="btn btn-secondary" onclick="cancelEdit()">取消</button>
+      <button class="btn btn-primary" onclick="saveEntry()">💾 保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──
+let currentCat = 'books';
+let entries = [];
+let editing = null;   // slug or 'new'
+let originalSlug = null;
+let pendingFile = null; // 待上传的文件 {name, data}
+
+const CAT_NAMES = { books: '书', films: '电影', tv: '电视', photos: '照片' };
+const CAT_EMOJIS = { books: '📖', films: '🎬', tv: '📺', photos: '📷' };
+
+// ── API ──
+async function api(method, path, data) {
+  const opts = { method };
+  if (data) {
+    opts.headers = { 'Content-Type': 'application/json' };
+    opts.body = JSON.stringify(data);
+  }
+  const r = await fetch(path, opts);
+  return r.json();
+}
+
+// ── 照片预览 ──
+function previewPhoto(event) {
+  const file = event.target.files[0];
+  if (!file) {
+    document.getElementById('f-file-preview').style.display = 'none';
+    pendingFile = null;
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const preview = document.getElementById('f-file-preview');
+    preview.querySelector('img').src = e.target.result;
+    preview.style.display = '';
+    pendingFile = { name: file.name, data: e.target.result };
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Switch category ──
+function switchCat(cat) {
+  currentCat = cat;
+  document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+  document.querySelector(`.sidebar a[data-cat="${cat}"]`).classList.add('active');
+  document.getElementById('cat-emoji').textContent = CAT_EMOJIS[cat];
+  document.getElementById('cat-title').textContent = CAT_NAMES[cat];
+  document.getElementById('formCard').style.display = 'none';
+  editing = null;
+  loadEntries();
+
+  // 显示/隐藏特定字段
+  const isPhoto = cat === 'photos';
+  const isBook = cat === 'books';
+  document.getElementById('fg-file').style.display = isPhoto ? '' : 'none';
+  document.getElementById('fg-status').style.display = isBook ? '' : 'none';
+  document.getElementById('fg-rating').style.display = (cat === 'photos') ? 'none' : '';
+  document.getElementById('fg-author').querySelector('label').textContent =
+    cat === 'films' ? '导演' : (cat === 'tv' ? '导演' : '作者');
+  if (!isPhoto) {
+    document.getElementById('f-file-preview').style.display = 'none';
+    document.getElementById('f-file-input').value = '';
+    pendingFile = null;
+  }
+}
+
+// ── Load entries ──
+async function loadEntries() {
+  const list = document.getElementById('entryList');
+  list.innerHTML = '<div class="entry-empty">加载中…</div>';
+  entries = await api('GET', `/api/list?category=${currentCat}`);
+  renderList();
+  document.getElementById(`count-${currentCat}`).textContent = entries.length;
+}
+
+function renderList() {
+  const list = document.getElementById('entryList');
+  if (entries.length === 0) {
+    list.innerHTML = '<div class="entry-empty">空空如也 — 点「＋新增」添加第一条记录</div>';
+    return;
+  }
+  list.innerHTML = entries.map(e => {
+    const stars = e.rating ? '★'.repeat(e.rating) + '☆'.repeat(5 - e.rating) : '';
+    const isActive = editing === e.slug;
+    return `<div class="entry-item ${isActive ? 'active' : ''}" onclick="editEntry('${e.slug}')">
+      <div class="info">
+        <div class="title">${esc(e.title)}</div>
+        <div class="meta">${esc(e.author || '')}${e.author && e.date ? ' · ' : ''}${esc(e.date || '')}</div>
+      </div>
+      ${stars ? `<div class="stars">${stars}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── Edit entry ──
+async function editEntry(slug) {
+  editing = slug;
+  originalSlug = slug;
+  const data = await api('GET', `/api/get?category=${currentCat}&slug=${slug}`);
+  if (!data || data.error) { toast('加载失败'); return; }
+
+  document.getElementById('f-title').value = data.title || '';
+  document.getElementById('f-author').value = data.author || data.director || '';
+  document.getElementById('f-date').value = data.date || '';
+  document.getElementById('f-rating').value = String(data.rating || 0);
+  document.getElementById('f-status').value = data.status || 'read';
+  document.getElementById('f-tags').value = (data.tags || []).join(', ');
+  document.getElementById('f-file').value = data.file || '';
+  document.getElementById('f-body').value = data.body || '';
+
+  // 照片编辑时显示已有图片
+  if (currentCat === 'photos' && data.file) {
+    const preview = document.getElementById('f-file-preview');
+    preview.querySelector('img').src = data.file;
+    preview.style.display = '';
+  } else {
+    document.getElementById('f-file-preview').style.display = 'none';
+  }
+  document.getElementById('f-file-input').value = '';
+  pendingFile = null;
+
+  document.getElementById('formTitle').textContent = '✏️ 编辑';
+  document.getElementById('btn-delete').style.display = '';
+  document.getElementById('formCard').style.display = '';
+  renderList();
+  document.getElementById('formCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function newEntry() {
+  editing = 'new';
+  originalSlug = null;
+  ['f-title','f-author','f-date','f-tags','f-file','f-body'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-rating').value = '0';
+  document.getElementById('f-status').value = 'read';
+  document.getElementById('f-file-input').value = '';
+  document.getElementById('f-file-preview').style.display = 'none';
+  pendingFile = null;
+  document.getElementById('formTitle').textContent = '➕ 新增';
+  document.getElementById('btn-delete').style.display = 'none';
+  document.getElementById('formCard').style.display = '';
+  document.getElementById('formCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  renderList();
+}
+
+function cancelEdit() {
+  editing = null;
+  originalSlug = null;
+  document.getElementById('formCard').style.display = 'none';
+  renderList();
+}
+
+// ── Save ──
+async function saveEntry() {
+  const title = document.getElementById('f-title').value.trim();
+  if (!title) { toast('⚠️ 标题不能为空'); return; }
+
+  const tagsRaw = document.getElementById('f-tags').value;
+  const tags = tagsRaw ? tagsRaw.split(/[,，]/).map(t => t.trim()).filter(t => t) : [];
+
+  const payload = {
+    title,
+    date: document.getElementById('f-date').value.trim(),
+    author: document.getElementById('f-author').value.trim(),
+    rating: parseInt(document.getElementById('f-rating').value) || 0,
+    status: document.getElementById('f-status').value,
+    tags,
+    file: document.getElementById('f-file').value.trim(),
+    body: document.getElementById('f-body').value,
+  };
+
+  // 如果是照片且有新文件，先上传
+  if (currentCat === 'photos' && pendingFile) {
+    toast('📤 正在上传图片…');
+    const uploadResult = await api('POST', '/api/upload', {
+      filename: pendingFile.name,
+      data: pendingFile.data,
+    });
+    if (!uploadResult.success) {
+      toast('❌ 上传失败: ' + (uploadResult.error || '未知错误'));
+      return;
+    }
+    payload.file = uploadResult.url;
+    pendingFile = null;
+  }
+
+  // 如果是电影/电视，用 director 而不是 author
+  if ((currentCat === 'films' || currentCat === 'tv') && payload.author) {
+    payload.director = payload.author;
+    delete payload.author;
+  }
+
+  const result = await api('POST', '/api/save', {
+    category: currentCat,
+    slug: originalSlug || '',
+    data: payload,
+  });
+
+  if (result.success) {
+    toast('✅ 已保存，正在更新网站…');
+    editing = result.slug;
+    originalSlug = result.slug;
+    // 自动构建网站
+    await api('POST', '/api/build', {});
+    toast('✅ 已保存，网站已更新 ✓');
+    await loadEntries();
+    // 高亮当前
+    document.querySelectorAll('.entry-item').forEach(el => {
+      if (el.textContent.includes(title)) el.classList.add('active');
+    });
+  } else {
+    toast('❌ 保存失败');
+  }
+}
+
+// ── Delete ──
+async function deleteEntry() {
+  if (!originalSlug) return;
+  if (!confirm('确定删除这条记录吗？')) return;
+  const result = await api('POST', '/api/delete', {
+    category: currentCat,
+    slug: originalSlug,
+  });
+  if (result.success) {
+    toast('🗑 已删除，正在更新网站…');
+    editing = null;
+    originalSlug = null;
+    document.getElementById('formCard').style.display = 'none';
+    await api('POST', '/api/build', {});
+    toast('🗑 已删除 ✓');
+    await loadEntries();
+  } else {
+    toast('❌ 删除失败');
+  }
+}
+
+// ── Build site ──
+async function buildSite() {
+  const btn = document.querySelector('.btn-success');
+  btn.disabled = true;
+  btn.textContent = '⏳ 构建中…';
+  const result = await api('POST', '/api/build');
+  btn.disabled = false;
+  btn.innerHTML = '🔄 构建网站';
+  if (result.success) {
+    toast('✅ 网站已更新！刷新首页查看');
+  } else {
+    toast('❌ 构建失败: ' + (result.output || ''));
+  }
+}
+
+// ── Toast ──
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ── Esc ──
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Init ──
+switchCat('books');
+</script>
+</body>
+</html>

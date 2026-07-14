@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>李三秋</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Noto Serif SC", "Source Han Serif SC", "STSong", "SimSun",
+                 "Georgia", serif;
+    letter-spacing: 2px;
+    position: relative;
+  }
+
+  /* 背景照片 — 全屏覆盖 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: url('uploads/photos/522e92cde5bc421d937f17655c3d0429.png') center/cover no-repeat;
+    z-index: -2;
+  }
+
+  /* 半透明黑色遮罩，让文字清晰可读 */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: -1;
+  }
+
+  .container {
+    text-align: center;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .chinese-name {
+    font-size: 3.2rem;
+    font-weight: 400;
+    letter-spacing: 12px;
+    color: #fff;
+    line-height: 1.3;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+
+  .english-name {
+    font-size: 0.95rem;
+    letter-spacing: 8px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 0.6rem;
+    font-family: "Georgia", "Noto Serif SC", serif;
+    font-weight: 300;
+  }
+
+  .divider {
+    width: 30px;
+    height: 1px;
+    background: rgba(255,255,255,0.3);
+    margin: 2rem auto;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .nav-links a {
+    text-decoration: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.9rem;
+    letter-spacing: 4px;
+    transition: color 0.2s;
+    position: relative;
+    padding: 0.3rem 0;
+  }
+
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 1px;
+    background: #fff;
+    transition: width 0.25s;
+  }
+
+  .nav-links a:hover {
+    color: #fff;
+  }
+
+  .nav-links a:hover::after {
+    width: 100%;
+  }
+
+  .footer {
+    margin-top: 4rem;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 2px;
+  }
+
+  @media (max-width: 520px) {
+    .chinese-name { font-size: 2.2rem; letter-spacing: 8px; }
+    .english-name { font-size: 0.8rem; letter-spacing: 5px; }
+    .nav-links { gap: 1.5rem; }
+    .nav-links a { font-size: 0.8rem; letter-spacing: 2px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="chinese-name">李三秋</div>
+  <div class="english-name">SANCHO CASSIA</div>
+  <div class="divider"></div>
+  <div class="nav-links">
+    <a href="books.html">📖 书</a>
+    <a href="films.html">🎬 电影</a>
+    <a href="tv.html">📺 电视</a>
+    <a href="photos.html">📷 照片</a>
+  </div>
+  <div class="footer" id="footer"></div>
+</div>
+<script>
+  fetch('api/total')
+    .then(r => r.json())
+    .then(d => { if(d.total) document.getElementById('footer').textContent = d.total + ' 条记录' })
+    .catch(() => {});
+</script>
+</body>
+</html>
