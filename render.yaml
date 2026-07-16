@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: eve-apple
+    env: python
+    buildCommand: ""
+    startCommand: python server.py
