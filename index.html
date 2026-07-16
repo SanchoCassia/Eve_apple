@@ -106,11 +106,14 @@
     width: 100%;
   }
 
-  .footer {
-    margin-top: 4rem;
-    font-size: 0.75rem;
-    color: rgba(255,255,255,0.3);
-    letter-spacing: 2px;
+  .quote {
+    margin: 1.8rem auto 0;
+    font-size: 0.8rem;
+    letter-spacing: 3px;
+    color: rgba(255,255,255,0.35);
+    font-style: italic;
+    max-width: 300px;
+    line-height: 1.8;
   }
 
   @media (max-width: 520px) {
@@ -132,13 +135,7 @@
     <a href="tv.html">📺 电视</a>
     <a href="photos.html">📷 照片</a>
   </div>
-  <div class="footer" id="footer"></div>
+  <div class="quote">世界上总有一些人是不重要的</div>
 </div>
-<script>
-  fetch('api/total')
-    .then(r => r.json())
-    .then(d => { if(d.total) document.getElementById('footer').textContent = d.total + ' 条记录' })
-    .catch(() => {});
-</script>
 </body>
 </html>
