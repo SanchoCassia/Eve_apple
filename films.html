@@ -106,11 +106,29 @@
     font-size: 0.83rem;
     color: #777;
     margin-top: 0.5rem;
+    line-height: 1.6;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .card .card-desc.collapsed {
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    line-height: 1.6;
+  }
+  .card .card-desc:hover {
+    color: #555;
+  }
+  .card .card-desc::after {
+    content: '⋯ 展开';
+    display: block;
+    font-size: 0.7rem;
+    color: #ccc;
+    letter-spacing: 1px;
+    margin-top: 0.2rem;
+  }
+  .card .card-desc.expanded::after {
+    content: '△ 收起';
   }
   .card .card-rating {
     margin-top: 0.4rem;
@@ -256,7 +274,9 @@
 
 千寻在汤屋工作的那段，不就是每个打工人的日常吗？被要求做这做那，被骂，一个人偷偷哭，然后擦干眼泪继续干。
 
-无脸男那段最神——他吞下青蛙后变得暴戾贪婪，因为&quot;在这个地方，如果你不工作，…</div><span class="card-rating">★★★★★</span><div class="card-tags"><span class="tag">动画</span><span class="tag">奇幻</span><span class="tag">成长</span></div></div>
+无脸男那段最神——他吞下青蛙后变得暴戾贪婪，因为&amp;quot;在这个地方，如果你不工作，就会变成猪&amp;quot;。
+
+还有那个经典台词：&amp;quot;有些事情是不可能忘记的。只是想不起来而已。&amp;quot;</div><span class="card-rating">★★★★★</span><div class="card-tags"><span class="tag">动画</span><span class="tag">奇幻</span><span class="tag">成长</span></div></div>
 </div>
 </div>
 
@@ -267,6 +287,16 @@
     .then(r => r.json())
     .then(d => { if(d.total) document.getElementById('footer').textContent = '共 ' + d.total + ' 条记录' })
     .catch(() => {});
+
+  // 点击描述展开/收起
+  document.querySelectorAll('.card-desc').forEach(el => {
+    el.classList.add('collapsed');
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      this.classList.toggle('collapsed');
+      this.classList.toggle('expanded');
+    });
+  });
 </script>
 </body>
 </html>

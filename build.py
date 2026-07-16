@@ -93,7 +93,7 @@ def collect_cards(category):
         date = meta.get('date', '')
         rating = meta.get('rating', 0)
         tags = meta.get('tags', [])
-        desc = truncate(body, 120)
+        desc = esc(body)
 
         t = '<div class="card">'
         t += f'<div class="card-title">{esc(title)}</div>'
@@ -126,7 +126,7 @@ def collect_books_grouped():
         date = meta.get('date', '')
         rating = meta.get('rating', 0)
         tags = meta.get('tags', [])
-        desc = truncate(body, 120)
+        desc = esc(body)
 
         card = '<div class="card">'
         card += f'<div class="card-title">{esc(title)}</div>'
