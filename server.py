@@ -168,9 +168,24 @@ def git_push():
         r2 = subprocess.run(['git', 'diff', '--cached', '--quiet'], capture_output=True, cwd=BASE, timeout=10)
         if r2.returncode == 0:
             return '没有新变更，跳过推送'
+
         r3 = subprocess.run(['git', 'commit', '-m', 'auto: 更新内容'], capture_output=True, text=True, cwd=BASE, timeout=10)
-        # 推送到 GitHub
+
+        # 如果设置了 GITHUB_TOKEN，用它来推送
+        token = os.environ.get('GITHUB_TOKEN', '')
+        if token:
+            repo_url = 'https://SanchoCassia:Eve_apple.git'
+            authed_url = f'https://SanchoCassia:{token}@github.com/SanchoCassia/Eve_apple.git'
+            subprocess.run(['git', 'remote', 'set-url', 'origin', authed_url],
+                         capture_output=True, text=True, cwd=BASE, timeout=5)
+
         r4 = subprocess.run(['git', 'push'], capture_output=True, text=True, cwd=BASE, timeout=60)
+
+        # 恢复原始 URL
+        if token:
+            subprocess.run(['git', 'remote', 'set-url', 'origin', repo_url],
+                         capture_output=True, text=True, cwd=BASE, timeout=5)
+
         if r4.returncode == 0:
             return '✅ 已推送到 GitHub'
         else:
@@ -300,7 +315,8 @@ class AdminHandler(http.server.SimpleHTTPRequestHandler):
 
         elif parsed.path == '/api/build':
             output = run_build()
-            self._send_json({'success': True, 'output': output})
+            push_result = git_push()
+            self._send_json({'success': True, 'output': output, 'push': push_result})
 
         elif parsed.path == '/api/upload':
             result = handle_upload(data)
