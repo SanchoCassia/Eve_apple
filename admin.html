@@ -421,8 +421,7 @@ async function saveEntry() {
     originalSlug = result.slug;
     // 自动构建网站
     const buildResult = await api('POST', '/api/build', {});
-    const pushMsg = buildResult.push ? ' · ' + buildResult.push : '';
-    toast('✅ 已保存' + pushMsg);
+    toast('✅ 已保存 · 刷新首页查看');
     await loadEntries();
     // 高亮当前
     document.querySelectorAll('.entry-item').forEach(el => {
@@ -447,8 +446,7 @@ async function deleteEntry() {
     originalSlug = null;
     document.getElementById('formCard').style.display = 'none';
     const buildResult = await api('POST', '/api/build', {});
-    const pushMsg = buildResult.push ? ' · ' + buildResult.push : '';
-    toast('🗑 已删除' + pushMsg);
+    toast('🗑 已删除');
     await loadEntries();
   } else {
     toast('❌ 删除失败');

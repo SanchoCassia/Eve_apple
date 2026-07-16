@@ -300,8 +300,7 @@ class AdminHandler(http.server.SimpleHTTPRequestHandler):
 
         elif parsed.path == '/api/build':
             output = run_build()
-            push_result = git_push()
-            self._send_json({'success': True, 'output': output, 'push': push_result})
+            self._send_json({'success': True, 'output': output})
 
         elif parsed.path == '/api/upload':
             result = handle_upload(data)
