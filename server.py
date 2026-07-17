@@ -41,6 +41,7 @@ def list_entries(category):
                 'author': meta.get('author', meta.get('director', '')),
                 'rating': meta.get('rating', 0),
                 'status': meta.get('status', ''),
+                'excerpts': meta.get('excerpts', []),
                 'tags': meta.get('tags', []),
                 'type': meta.get('type', ''),
                 'file': meta.get('file', ''),
@@ -63,6 +64,7 @@ def get_entry(category, slug):
         'director': meta.get('director', ''),
         'rating': meta.get('rating', 0),
         'status': meta.get('status', 'read'),
+        'excerpts': meta.get('excerpts', []),
         'tags': meta.get('tags', []),
         'type': meta.get('type', ''),
         'file': meta.get('file', ''),
@@ -80,25 +82,40 @@ def parse_frontmatter(text):
         if len(parts) >= 3:
             fm_text = parts[1].strip()
             body = parts[2].strip()
-            for line in fm_text.split('\n'):
-                line = line.strip()
-                if ':' in line:
-                    k, v = line.split(':', 1)
+            lines = fm_text.split('\n')
+            i = 0
+            while i < len(lines):
+                line = lines[i]
+                stripped = line.strip()
+                if ':' in stripped:
+                    k, v = stripped.split(':', 1)
                     k = k.strip()
-                    v = v.strip().strip('"\'')
-                    if k in ('tags',) and v:
-                        # 简单支持 [tag1, tag2]
-                        if v.startswith('[') and v.endswith(']'):
-                            meta[k] = [t.strip().strip('"\'') for t in v[1:-1].split(',') if t.strip()]
-                        else:
-                            meta[k] = [v]
-                    elif k == 'rating':
-                        try:
-                            meta[k] = int(v)
-                        except ValueError:
-                            meta[k] = 0
+                    v = v.strip()
+                    # 多行列表格式 (excerpts: 后面跟着 - "xxx")
+                    if v == '' and i + 1 < len(lines) and lines[i+1].strip().startswith('- '):
+                        items = []
+                        i += 1
+                        while i < len(lines) and lines[i].strip().startswith('- '):
+                            item = lines[i].strip()[2:].strip().strip('"\'')
+                            items.append(item)
+                            i += 1
+                        meta[k] = items
+                        continue
                     else:
-                        meta[k] = v
+                        v = v.strip('"\'')
+                        if k in ('tags',) and v:
+                            if v.startswith('[') and v.endswith(']'):
+                                meta[k] = [t.strip().strip('"\'') for t in v[1:-1].split(',') if t.strip()]
+                            else:
+                                meta[k] = [v]
+                        elif k == 'rating':
+                            try:
+                                meta[k] = int(v)
+                            except ValueError:
+                                meta[k] = 0
+                        else:
+                            meta[k] = v
+                i += 1
     return meta, body
 
 
@@ -119,6 +136,12 @@ def build_frontmatter(data):
             lines.append(f'tags: [{tag_str}]')
     elif tags and isinstance(tags, str) and tags.strip():
         lines.append(f'tags: [{tags}]')
+    excerpts = data.get('excerpts', [])
+    if excerpts and isinstance(excerpts, list):
+        lines.append('excerpts:')
+        for ex in excerpts:
+            if ex.strip():
+                lines.append(f'  - "{esc_md(ex.strip())}"')
     lines.append('---')
     lines.append('')
     lines.append(data.get('body', ''))

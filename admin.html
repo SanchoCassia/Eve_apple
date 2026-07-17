@@ -193,6 +193,10 @@
         <label>标签（逗号分隔）</label>
         <input id="f-tags" placeholder="小说, 魔幻现实主义">
       </div>
+      <div class="form-group full-width" id="fg-excerpts" style="display:none">
+        <label>摘抄 <span style="color:#ccc;font-weight:400;font-size:0.75rem">（每行一条）</span></label>
+        <textarea id="f-excerpts" placeholder="多年以后，面对行刑队，奥雷里亚诺·布恩迪亚上校将会回想起父亲带他去见识冰块的那个遥远的下午。&#10;&#10;一个人不是在该死的时候死，而是在能死的时候死。" style="min-height:80px"></textarea>
+      </div>
       <div class="form-group" id="fg-file" style="display:none">
         <label>照片</label>
         <input type="file" id="f-file-input" accept="image/*" onchange="previewPhoto(event)">
@@ -273,6 +277,7 @@ function switchCat(cat) {
   const isPhoto = cat === 'photos';
   const isBook = cat === 'books';
   document.getElementById('fg-file').style.display = isPhoto ? '' : 'none';
+  document.getElementById('fg-excerpts').style.display = isBook ? '' : 'none';
   document.getElementById('fg-status').style.display = isBook ? '' : 'none';
   document.getElementById('fg-rating').style.display = (cat === 'photos') ? 'none' : '';
   document.getElementById('fg-author').querySelector('label').textContent =
@@ -325,6 +330,7 @@ async function editEntry(slug) {
   document.getElementById('f-rating').value = String(data.rating || 0);
   document.getElementById('f-status').value = data.status || 'read';
   document.getElementById('f-tags').value = (data.tags || []).join(', ');
+  document.getElementById('f-excerpts').value = (data.excerpts || []).join('\n');
   document.getElementById('f-file').value = data.file || '';
   document.getElementById('f-body').value = data.body || '';
 
@@ -349,7 +355,7 @@ async function editEntry(slug) {
 function newEntry() {
   editing = 'new';
   originalSlug = null;
-  ['f-title','f-author','f-date','f-tags','f-file','f-body'].forEach(id => document.getElementById(id).value = '');
+  ['f-title','f-author','f-date','f-tags','f-excerpts','f-file','f-body'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('f-rating').value = '0';
   document.getElementById('f-status').value = 'read';
   document.getElementById('f-file-input').value = '';
@@ -384,6 +390,7 @@ async function saveEntry() {
     rating: parseInt(document.getElementById('f-rating').value) || 0,
     status: document.getElementById('f-status').value,
     tags,
+    excerpts: document.getElementById('f-excerpts').value.split('\n').map(s => s.trim()).filter(s => s),
     file: document.getElementById('f-file').value.trim(),
     body: document.getElementById('f-body').value,
   };

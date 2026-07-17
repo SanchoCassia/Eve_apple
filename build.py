@@ -137,6 +137,14 @@ def collect_books_grouped():
             card += stars_html(rating)
         if tags:
             card += '<div class="card-tags">' + ''.join(f'<span class="tag">{esc(str(t))}</span>' for t in tags) + '</div>'
+        excerpts = meta.get('excerpts', [])
+        if excerpts:
+            card += '<div class="card-excerpts">'
+            for ex in excerpts[:2]:
+                card += '<div class="card-excerpt">\u201c' + esc(ex) + '\u201d</div>'
+            if len(excerpts) > 2:
+                card += '<div class="card-excerpt-more">\u2026还有 ' + str(len(excerpts)-2) + ' 条摘抄</div>'
+            card += '</div>'
         card += '</div>'
 
         if status == 'want':
